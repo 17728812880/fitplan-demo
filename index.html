@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FitPlan · 智能健身计划管理系统（在线演示）</title>
+<style>
+  :root{ --bg:#f4f5fa; --card:#fff; --ink:#1e2230; --sub:#6b7280; --line:#e6e8f0;
+    --brand:#4f46e5; --brand2:#7c3aed; --ok:#0f9d6e; --warn:#d97706; --bad:#dc2626; --radius:16px; }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:14px/1.65 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+  button{font:inherit}
+  header{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:18px 24px}
+  .head-in{max-width:1080px;margin:0 auto;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .brand b{font-size:18px;letter-spacing:.3px} .brand span{display:block;font-size:12px;opacity:.85;margin-top:2px}
+  .head-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px}
+  .head-meta .chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);padding:3px 10px;border-radius:999px}
+  .head-meta .streak{background:#fff;color:#b45309;font-weight:600}
+  .ghost-light{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);color:#fff;padding:6px 12px;border-radius:10px;cursor:pointer}
+  nav{max-width:1080px;margin:0 auto;padding:12px 24px 0;display:flex;gap:8px;overflow-x:auto}
+  nav button{white-space:nowrap;border:1px solid var(--line);background:#fff;color:var(--sub);padding:8px 16px;border-radius:10px;cursor:pointer}
+  nav button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .steps{max-width:1080px;margin:12px auto 0;padding:0 24px;display:flex;gap:6px;flex-wrap:wrap;font-size:12px}
+  .steps .st{flex:1;min-width:150px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;color:var(--sub)}
+  .steps .st i{width:20px;height:20px;border-radius:50%;background:#eef0f7;color:#8b90a3;font-style:normal;display:grid;place-items:center;font-size:11px;flex:none}
+  .steps .st.done i{background:#e8f8f1;color:var(--ok)} .steps .st.cur{border-color:#c7c4fb;box-shadow:0 0 0 3px rgba(79,70,229,.08);color:var(--ink)}
+  main{max-width:1080px;margin:0 auto;padding:16px 24px 48px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+  .card h2{margin:0 0 14px;font-size:16px} .card h3{margin:0 0 10px;font-size:14px;color:var(--sub)}
+  .split{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+  label{display:block;color:var(--sub);font-size:12px;margin-bottom:5px}
+  input,select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus{outline:none;border-color:#a5b4fc;box-shadow:0 0 0 3px rgba(79,70,229,.08)}
+  .unit{position:relative} .unit input{padding-right:38px}
+  .unit span{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:#9aa0b2;font-size:12px}
+  .btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:9px 18px;cursor:pointer}
+  .btn:hover{filter:brightness(1.05)} .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn.soft{background:#eef0ff;color:#4338ca;border:1px solid #ddd9ff} .btn.danger{background:#fff;border:1px solid #f3d0d0;color:var(--bad)}
+  .btn.sm{padding:5px 11px;border-radius:8px;font-size:12px} .btn:disabled{opacity:.5;cursor:not-allowed}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap} .muted{color:var(--sub);font-size:13px}
+  .pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:12px;background:#f1f2f8;color:#5b6072}
+  .pill.ok{background:#e8f8f1;color:var(--ok)} .pill.bad{background:#fdecec;color:var(--bad)} .pill.warn{background:#fef3e2;color:var(--warn)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap} th{color:var(--sub);font-weight:600}
+  .table-wrap{overflow-x:auto} .bar{height:7px;background:#eef0f6;border-radius:999px;overflow:hidden;min-width:80px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#818cf8,#4f46e5)}
+  .note{color:var(--sub);font-size:13px;margin:4px 0} .tip{background:#f5f4ff;border-left:3px solid var(--brand);padding:8px 12px;border-radius:8px;margin:6px 0;font-size:13px}
+  .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+  .kpi div{background:#fafbff;border:1px solid var(--line);border-radius:12px;padding:14px}
+  .kpi b{display:block;font-size:22px;margin-top:2px} .kpi small{font-weight:400;font-size:12px;color:var(--sub)}
+  .days{display:flex;align-items:flex-end;gap:10px;height:150px;margin-top:14px}
+  .days div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;font-size:12px;color:var(--sub)}
+  .days i{display:block;width:100%;background:linear-gradient(180deg,#a5b4fc,#4f46e5);border-radius:6px 6px 0 0;min-height:3px}
+  .hide{display:none!important} .compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .candi{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fcfcff} .candi.b{border-color:#f0dfbd;background:#fffdf8}
+  .candi h3{display:flex;justify-content:space-between;align-items:center;color:var(--ink);font-size:15px;margin-bottom:8px}
+  .metric{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #eceef6;font-size:13px}
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:10px 0}
+  .week span{text-align:center;font-size:11px;padding:6px 0;border-radius:6px;background:#f2f3f9;color:#8b90a3}
+  .week span.aerobic{background:#e8efff;color:#3b5bdb} .week span.strength{background:#f0e9ff;color:#7048e8}
+  .week span.flex{background:#e6f8ef;color:#0f9d6e} .week span.rest{background:#f4f4f7;color:#b0b4c2}
+  .help{margin-top:12px;border:1px solid #ddd9ff;background:#f8f7ff;border-radius:12px;overflow:hidden}
+  .help summary{cursor:pointer;padding:11px 14px;color:#4338ca;font-weight:600;list-style:none}
+  .help summary::-webkit-details-marker{display:none}
+  .help summary::after{content:"＋";float:right;font-size:18px;line-height:1.2}
+  .help[open] summary::after{content:"－"}
+  .help-body{padding:0 14px 14px} .help-body p{margin:8px 0}
+  .help-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+  .help-grid div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:12px;color:var(--sub)}
+  .help-grid b{color:var(--ink)}
+  .rpe-list{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:8px}
+  .rpe-item{display:grid;grid-template-columns:30px 76px 1fr;gap:6px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:7px 9px;font-size:12px}
+  .rpe-item b{color:var(--brand)} .rpe-item span{color:var(--ink);font-weight:600} .rpe-item em{font-style:normal;color:var(--sub)}
+  .overlay{position:fixed;inset:0;background:rgba(24,26,38,.45);display:grid;place-items:center;z-index:50;padding:20px}
+  .modal{background:#fff;border-radius:18px;width:100%;max-width:520px;padding:24px;box-shadow:0 24px 60px rgba(20,20,50,.22)}
+  .modal h3{margin:0 0 6px;font-size:17px;color:var(--ink)} .modal p{color:var(--sub);margin:6px 0 14px;font-size:13px}
+  .modal .foot{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+  .dots{display:flex;gap:6px} .dots i{width:7px;height:7px;border-radius:50%;background:#dde0ea} .dots i.on{background:var(--brand)}
+  #toast{position:fixed;right:22px;bottom:22px;background:#232838;color:#fff;padding:10px 16px;border-radius:10px;opacity:0;transition:.25s;font-size:13px;z-index:60;pointer-events:none}
+  #toast.show{opacity:1}
+  .demobar{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;text-align:center;font-size:12px;padding:6px}
+  @media (max-width:860px){ .split,.compare{grid-template-columns:1fr} .head-in{gap:10px} }
+  @media (max-width:620px){ header{padding:14px 16px} nav,.steps,main{padding-left:16px;padding-right:16px} .card{padding:16px} .kpi{grid-template-columns:1fr 1fr} .help-grid,.rpe-list{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="demobar">在线演示版 · 数据保存在你的浏览器本地，与课程设计完整版（Java + MySQL）功能一致</div>
+<header>
+  <div class="head-in">
+    <div class="brand"><b>FitPlan · 智能健身计划管理系统</b><span>建档 → 方案对比 → 自由调整 → 打卡 → 复盘</span></div>
+    <div class="head-meta" id="headMeta"><span class="chip">加载中…</span></div>
+  </div>
+</header>
+<nav>
+  <button data-tab="profile" class="on">用户档案</button>
+  <button data-tab="plan">训练计划</button>
+  <button data-tab="checkin">今日打卡</button>
+  <button data-tab="stats">数据统计</button>
+  <button id="btnGuide" class="ghost-light" style="background:#fff;color:#4338ca;border-color:#fff;margin-left:auto">新手指导</button>
+</nav>
+<div class="steps" id="steps"></div>
+<main>
+  <section id="tab-profile">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:14px">
+        <h2 style="margin:0">基础档案</h2><span class="muted">保存后自动计算基础代谢（BMR）和体重指数（BMI）</span>
+      </div>
+      <div class="split">
+        <div><h3>身体数据</h3><div class="form-grid">
+          <div><label>称呼</label><input id="p-name" placeholder="例如：小明"></div>
+          <div><label>性别</label><select id="p-gender"><option>男</option><option>女</option></select></div>
+          <div><label>年龄</label><div class="unit"><input id="p-age" type="number" min="10" max="90"><span>岁</span></div></div>
+          <div><label>身高</label><div class="unit"><input id="p-height" type="number" min="120" max="230"><span>cm</span></div></div>
+          <div><label>体重</label><div class="unit"><input id="p-weight" type="number" step="0.1" min="30" max="200"><span>kg</span></div></div>
+        </div></div>
+        <div><h3>训练偏好</h3><div class="form-grid">
+          <div><label>训练目标</label><select id="p-goal"><option>减脂塑形</option><option>增肌力量</option><option>耐力提升</option></select></div>
+          <div><label>偏好项目（可空）</label><input id="p-pref" placeholder="例如：游泳"></div>
+          <div><label>每周可训练天数</label><select id="p-days"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+        </div>
+        <div class="row" style="margin-top:14px"><button class="btn" onclick="saveProfile()">保存档案</button><span class="muted" id="profileHint"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="tab-plan" class="hide">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div><h2 style="margin:0">训练计划</h2><div class="muted" id="planSub">生成两套候选方案，对比后再决定用哪套</div></div>
+        <div class="row" id="planActions"></div>
+      </div>
+      <details class="help" id="rpeGuide">
+        <summary>看不懂强度或英文缩写？展开术语与 RPE 1～10 级对照</summary>
+        <div class="help-body">
+          <p class="muted"><b>RPE（主观运动强度）</b>是根据呼吸、心跳、肌肉疲劳和说话难度，给“这次运动有多累”打分。它不是重量、速度或机器档位，同一数值的感受因人而异。</p>
+          <div class="help-grid">
+            <div><b>BMR · 基础代谢</b><br>安静状态下，身体维持呼吸、心跳等一天所需的基础热量。</div>
+            <div><b>BMI · 体重指数</b><br>用身高和体重估算的体重参考指标，不能单独代表健康或体脂率。</div>
+            <div><b>MET · 代谢当量</b><br>动作耗能系数；数值越大，同样体重和时间下通常消耗越多。</div>
+            <div><b>TS · 训练负荷</b><br>由时长、强度和动作耗能系数计算的训练压力参考值，不是卡路里。</div>
+          </div>
+          <h3>强度 1～10 级分别是什么感觉？</h3>
+          <div class="rpe-list">
+            <div class="rpe-item"><b>1 级</b><span>极轻松</span><em>几乎不费力，呼吸完全平稳</em></div>
+            <div class="rpe-item"><b>2 级</b><span>很轻松</span><em>能轻松唱歌，几乎没有负担</em></div>
+            <div class="rpe-item"><b>3 级</b><span>轻松</span><em>微微发热，能完整聊天</em></div>
+            <div class="rpe-item"><b>4 级</b><span>较轻松</span><em>开始有些累，仍能连续说长句</em></div>
+            <div class="rpe-item"><b>5 级</b><span>中等</span><em>呼吸加深，能正常说短句</em></div>
+            <div class="rpe-item"><b>6 级</b><span>有点累</span><em>需要刻意坚持，只能说较短的话</em></div>
+            <div class="rpe-item"><b>7 级</b><span>明显累</span><em>明显喘息或肌肉酸，只能说几个词</em></div>
+            <div class="rpe-item"><b>8 级</b><span>很累</span><em>需要很强意志维持，很难说话</em></div>
+            <div class="rpe-item"><b>9 级</b><span>接近极限</span><em>只能短时间坚持，几乎无法说话</em></div>
+            <div class="rpe-item"><b>10 级</b><span>极限</span><em>已经用尽全力，无法继续</em></div>
+          </div>
+          <p class="muted"><b>怎么选：</b>新手多数训练可放在 3～6 级；7～8 级较累，有运动基础后再少量尝试；9～10 级不适合作为日常目标。若出现胸闷、眩晕或关节疼痛，应立即停止，不要硬撑到某个数值。</p>
+        </div>
+      </details>
+      <div id="planBody" style="margin-top:14px"></div>
+    </div>
+    <div class="card hide" id="layerCard"><h2>五层校验</h2><div id="layers"></div></div>
+    <div class="card hide" id="noteCard"><h2>生成说明（可解释 · 可溯源）</h2><div id="notes"></div></div>
+  </section>
+  <section id="tab-checkin" class="hide">
+    <div class="card">
+      <h2>今日打卡</h2><div class="muted" id="todayPlan" style="margin-bottom:10px"></div>
+      <div class="form-grid">
+        <div><label>运动项目</label><select id="c-ex"></select></div>
+        <div><label>实际时长</label><div class="unit"><input id="c-min" type="number" value="30" min="1" max="300"><span>分钟</span></div></div>
+        <div><label>实际强度（主观感受）</label><select id="c-rpe">
+          <option value="1">1 级 · 极轻松（几乎不费力）</option>
+          <option value="2">2 级 · 很轻松（能轻松唱歌）</option>
+          <option value="3">3 级 · 轻松（能完整聊天）</option>
+          <option value="4">4 级 · 较轻松（能说长句）</option>
+          <option value="5">5 级 · 中等（呼吸加深）</option>
+          <option value="6" selected>6 级 · 有点累（需要坚持）</option>
+          <option value="7">7 级 · 明显累（只能说几个词）</option>
+          <option value="8">8 级 · 很累（很难说话）</option>
+          <option value="9">9 级 · 接近极限（只能短时坚持）</option>
+          <option value="10">10 级 · 极限（无法继续）</option>
+        </select></div>
+        <div><label>身体反馈</label><select id="c-feeling">
+          <option value="good">状态良好（轻松完成）</option><option value="ok" selected>一般（正常完成）</option>
+          <option value="tired">乏力（没练够）</option><option value="pain">关节不适 / 酸痛</option></select></div>
+        <div><label>日期（默认今天，可补录）</label><input id="c-date" type="date"></div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" onclick="doCheckin()">提交打卡</button>
+        <button class="btn ghost" onclick="demo()">一键演示（近 7 天）</button>
+        <span class="muted">同一天同一项目重复提交会自动覆盖，不会重复计数</span>
+      </div>
+    </div>
+    <div class="card"><h2>打卡记录</h2><div class="table-wrap" id="checkTable"><span class="muted">暂无记录</span></div></div>
+    <div class="card" id="versionCard"><h2>自适应调整 · 版本记录</h2><div id="versions"><span class="muted">暂无调整记录</span></div></div>
+  </section>
+  <section id="tab-stats" class="hide">
+    <div class="card"><h2>本周概览</h2><div class="kpi" id="kpi"></div><div class="days" id="days"></div></div>
+    <div class="card"><h2>计划 · 执行</h2><div id="planProgress"></div></div>
+    <div class="card"><h2>训练负荷（TS）</h2><div id="loadTrend"></div></div>
+    <div class="card"><h2>可解释建议</h2><div id="tips"></div></div>
+  </section>
+</main>
+<div class="overlay hide" id="guide"><div class="modal">
+  <h3 id="gTitle"></h3><p id="gText"></p><div class="dots" id="gDots"></div>
+  <div class="foot"><button class="btn ghost" onclick="closeGuide()">跳过</button>
+    <div class="row"><button class="btn ghost" id="gPrev" onclick="guidePrev()">上一步</button><button class="btn" id="gNext" onclick="guideNext()">下一步</button></div></div>
+</div></div>
+<div class="overlay hide" id="edit"><div class="modal">
+  <h3 id="eTitle">编辑训练条目</h3><p class="muted" style="margin-top:0">改完立即生效，草稿不会被强制激活</p>
+  <div class="form-grid">
+    <div><label>星期</label><select id="e-day"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="7">周日</option></select></div>
+    <div><label>项目</label><select id="e-ex"></select></div>
+    <div><label>时长</label><div class="unit"><input id="e-min" type="number" min="5" max="300" value="30"><span>分钟</span></div></div>
+    <div><label>强度感受（RPE）</label><select id="e-rpe">
+      <option value="1">1 级 · 极轻松（几乎不费力）</option>
+      <option value="2">2 级 · 很轻松（能轻松唱歌）</option>
+      <option value="3">3 级 · 轻松（能完整聊天）</option>
+      <option value="4">4 级 · 较轻松（能说长句）</option>
+      <option value="5">5 级 · 中等（呼吸加深）</option>
+      <option value="6" selected>6 级 · 有点累（需要坚持）</option>
+      <option value="7">7 级 · 明显累（只能说几个词）</option>
+      <option value="8">8 级 · 很累（很难说话）</option>
+      <option value="9">9 级 · 接近极限（只能短时坚持）</option>
+      <option value="10">10 级 · 极限（无法继续）</option>
+    </select></div>
+  </div>
+  <div class="foot"><button class="btn ghost" onclick="closeEdit()">取消</button><button class="btn" onclick="saveItem()">保存</button></div>
+</div></div>
+<div id="toast"></div>
+
+<script>
+/* ==================== 常量 ==================== */
+const CN = ["周一","周二","周三","周四","周五","周六","周日"];
+const EX = {
+  "快走":["有氧",4.3],"慢跑":["有氧",8.0],"骑行":["有氧",6.8],"游泳":["有氧",7.0],
+  "跳绳":["有氧",11.0],"椭圆机":["有氧",5.0],"自重训练":["力量",5.0],"哑铃训练":["力量",5.0],
+  "杠铃训练":["力量",6.0],"弹力带训练":["力量",4.0],"瑜伽":["柔韧",3.0],"普拉提":["柔韧",3.8],"静态拉伸":["柔韧",2.3]
+};
+const RPE_SHORT = ["", "极轻松", "很轻松", "轻松", "较轻松", "中等", "有点累", "明显累", "很累", "接近极限", "极限"];
+function rpeShort(v){
+  const n=Math.max(1,Math.min(10,Math.round(Number(v)||1)));
+  return RPE_SHORT[n];
+}
+let S = null, CAND = null, EDIT_DAY = 0, GUIDE_I = 0;
+const GUIDE = [
+  {t:"第 1 步 · 建档", d:"先填称呼、性别、年龄、身高、体重，选训练目标与每周可练天数。保存后顶部会实时显示基础代谢（BMR）和体重指数（BMI）。"},
+  {t:"第 2 步 · 对比两套方案", d:"进入「训练计划」点生成，会同时给出 A 标准版 和 B 轻量版，对比周训练量、力量占比、休息天数，选更合适的点「采用」。"},
+  {t:"第 3 步 · 自由调整（不会被强制激活）", d:"草稿里每一行都能改项目、时长和强度感受。强度采用主观运动强度（RPE），1 级最轻松、10 级最极限；训练计划页可展开完整对照。"},
+  {t:"第 4 步 · 今日打卡", d:"今天有计划项目会置顶显示，记录实际时长与强度感受；同项目重复提交自动覆盖，页面会给出热量估算和连续打卡天数。"},
+  {t:"第 5 步 · 复盘", d:"「数据统计」里看完成率、周量、每日柱状图与可解释建议（如完成率低于 60% 会给出降低训练量建议）。"}
+];
+
+/* ==================== 本地数据层（localStorage） ==================== */
+const DBKEY = "fitplan_demo_db_v1";
+let DB = null;
+function loadDB(){
+  try { DB = JSON.parse(localStorage.getItem(DBKEY)) || null; } catch(e){ DB = null; }
+  if(!DB) DB = {
+    profile:{name:"",gender:"男",age:22,height:175,weight:68,goal:"减脂塑形",preference:"",days:4},
+    plan:null, cand:null, checks:[], versions:[]
+  };
+}
+function saveDB(){ localStorage.setItem(DBKEY, JSON.stringify(DB)); }
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function todayStr(){ const t=new Date(),p=n=>String(n).padStart(2,"0"); return t.getFullYear()+"-"+p(t.getMonth()+1)+"-"+p(t.getDate()); }
+function nowStr(){ const t=new Date(),p=n=>String(n).padStart(2,"0"); return todayStr()+" "+p(t.getHours())+":"+p(t.getMinutes())+":"+p(t.getSeconds()); }
+function bmr(p){ return Math.round(10*p.weight+6.25*p.height-5*p.age+(p.gender==="男"?5:-161)); }
+function bmi(p){ const v=p.weight/((p.height/100)**2); return Math.round(v*10)/10; }
+function bmiLevel(b){ return b<18.5?"偏瘦":b<24?"正常":b<28?"超重":"肥胖"; }
+function dayOfWeek(dateStr){ const d=new Date(dateStr+"T00:00:00"); return d.getDay()||7; }
+function catOf(name){ return (EX[name]||["有氧"])[0]; }
+
+/* ---------- 计划生成（规则引擎） ---------- */
+const DAYS_MAP={2:[2,5],3:[1,3,5],4:[1,2,4,6],5:[1,2,3,5,6],6:[1,2,3,4,5,6]};
+const POOL={ "有氧":["快走","慢跑","骑行","游泳","椭圆机"], "力量":["自重训练","哑铃训练","弹力带训练"], "柔韧":["瑜伽","静态拉伸","普拉提"] };
+function pickEx(cat, pref, used){
+  let pool = POOL[cat].slice();
+  if(pref && pool.includes(pref) && !used.has(pref)) { used.add(pref); return pref; }
+  for(const e of pool){ if(!used.has(e)){ used.add(e); return e; } }
+  return pool[0];
+}
+function buildItems(p, light){
+  const days = DAYS_MAP[p.days]||DAYS_MAP[4];
+  const goal=p.goal, used=new Set(), items=[];
+  const seq = goal==="增肌力量" ? ["力量","力量","有氧","力量","力量","有氧"]
+            : goal==="耐力提升" ? ["有氧","有氧","力量","有氧","有氧","柔韧"]
+            : ["有氧","力量","有氧","柔韧","力量","有氧"];
+  days.forEach((d,i)=>{
+    const cat = seq[i%seq.length];
+    const ex = pickEx(cat, p.preference, used);
+    let min = cat==="力量" ? (goal==="增肌力量"?40:30) : cat==="柔韧" ? 25 : (goal==="耐力提升"?45:35);
+    let rpe = cat==="力量" ? (goal==="增肌力量"?7:6) : (goal==="耐力提升"?6:5);
+    if(light){ min=Math.max(15,Math.round(min*0.8/5)*5); rpe=Math.max(1,rpe-1); }
+    items.push({day:d, exercise:ex, minutes:min, rpe:rpe});
+  });
+  return items;
+}
+function validate(items, goal){
+  const layers=[]; let degraded=false;
+  const ok=(name,pass,msg)=>{ layers.push({name,pass,msg}); if(!pass) degraded=true; };
+  // 1 结构
+  const structOk = items.length>0 && items.every(i=>i.day>=1&&i.day<=7&&i.exercise&&i.minutes>0);
+  ok("结构层", structOk, structOk?"每条安排含星期/项目/时长/强度，字段完整":"存在不完整条目");
+  // 2 白名单
+  const wl = items.every(i=>EX[i.exercise]);
+  ok("白名单层", wl, wl?"全部项目来自标准项目库":"存在库外项目");
+  // 3 约束
+  items.forEach(i=>{ i.minutes=clamp(Math.round(i.minutes),5,300); i.rpe=clamp(Math.round(i.rpe),1,10); });
+  ok("约束层", true, "时长限制 5~300 分钟，强度（RPE）限制 1~10 级，已校正");
+  // 4 护栏：休息>=2 天
+  let rest = 7-items.length;
+  if(rest<2){ // 降级：保留前 5 个训练日
+    items.sort((a,b)=>a.day-b.day); items=items.slice(0,5); rest=7-items.length;
+    ok("护栏层", false, "休息日不足 2 天，已自动减少训练日以保证恢复");
+  } else ok("护栏层", true, "每周休息日 "+rest+" 天，满足主动恢复要求");
+  // 5 目标
+  const m=metrics(items);
+  let goalOk=true, gmsg="";
+  if(goal==="增肌力量" && m.strengthPct<50){ goalOk=false; gmsg="增肌需力量占比≥50%，当前 "+m.strengthPct+"%"; }
+  else if(m.minutes<90||m.minutes>600){ goalOk=false; gmsg="周总时长需在 90~600 分钟，当前 "+m.minutes+" 分钟"; }
+  else gmsg="目标匹配：周量 "+m.minutes+" 分钟，力量占比 "+m.strengthPct+"%，强度合理";
+  ok("目标层", goalOk, gmsg);
+  return {items, layers, passed:!degraded};
+}
+function metrics(items){
+  const minutes=items.reduce((s,i)=>s+i.minutes,0);
+  const strMin=items.filter(i=>catOf(i.exercise)==="力量").reduce((s,i)=>s+i.minutes,0);
+  const avgRpe=items.length? Math.round(items.reduce((s,i)=>s+i.rpe,0)/items.length*10)/10 : 0;
+  return { minutes, days:items.length, restDays:7-items.length,
+    strengthPct: minutes?Math.round(strMin*100/minutes):0, avgRpe };
+}
+function makePlan(p, light){
+  let {items, layers, passed} = validate(buildItems(p, light), p.goal);
+  const notes=[
+    "目标｜"+p.goal+"，按目标匹配项目类别与强度区间",
+    "频率｜每周 "+p.days+" 天训练，休息 "+(7-items.length)+" 天",
+    "代谢｜基础代谢（BMR）"+bmr(p)+" 千卡/天，体重指数（BMI）"+bmi(p)+"（"+bmiLevel(bmi(p))+"）",
+    "强度｜采用主观运动强度（RPE）1～10 级，1 级最轻松、10 级最极限",
+    "方案｜"+(light?"B 轻量版：每次时长约缩短 20%，强度降低 1 级，更适合入门":"A 标准版：按目标推荐训练量"),
+    "安全｜五层校验"+(passed?"全部通过":"存在降级，已自动修正为合规版本")
+  ];
+  return { name:p.goal+"计划", version:1, status:"draft", source:"规则引擎"+(passed?"":"(已降级)"),
+    created:todayStr(), items, layers, notes };
+}
+
+/* ---------- 统计 ---------- */
+function mondayOf(d){ const x=new Date(d); const dow=x.getDay()||7; x.setDate(x.getDate()-dow+1); x.setHours(0,0,0,0); return x; }
+function weekChecks(offset){
+  const mon=mondayOf(new Date()); mon.setDate(mon.getDate()+offset*7);
+  const next=new Date(mon); next.setDate(next.getDate()+7);
+  return DB.checks.filter(c=>{ const d=new Date(c.date+"T00:00:00"); return d>=mon&&d<next; });
+}
+function tsOf(list){ return Math.round(list.reduce((s,c)=>s+(c.ts||0),0)*10)/10; }
+function computeStats(){
+  const wk=weekChecks(0);
+  const weeklyMinutes=wk.reduce((s,c)=>s+c.minutes,0);
+  const calories=Math.round(wk.reduce((s,c)=>s+c.calories,0));
+  const daysSet=new Set(wk.map(c=>c.date));
+  const trainingDays=daysSet.size, restDays=7-trainingDays;
+  const strMin=wk.filter(c=>catOf(c.exercise)==="力量").reduce((s,c)=>s+c.minutes,0);
+  const strengthPct=weeklyMinutes?Math.round(strMin*100/weeklyMinutes):0;
+  const perDay=[0,0,0,0,0,0,0];
+  wk.forEach(c=>{ perDay[dayOfWeek(c.date)-1]+=c.minutes; });
+  // 完成率：本周计划应完成条目（周一~今天）中已打卡比例
+  const dow=new Date().getDay()||7;
+  let plannedCount=0, doneCount=0;
+  if(DB.plan){ DB.plan.items.forEach(i=>{ if(i.day<=dow){ plannedCount++;
+    if(wk.some(c=>dayOfWeek(c.date)===i.day && c.exercise===i.exercise && c.done)) doneCount++; }}); }
+  const completion=plannedCount?Math.min(100,Math.round(doneCount*100/plannedCount)):(wk.length?Math.round(wk.filter(c=>c.done).length*100/wk.length):0);
+  // 连续打卡
+  let streak=0; const d=new Date(); if(!DB.checks.some(c=>c.date===todayStr())) d.setDate(d.getDate()-1);
+  while(DB.checks.some(c=>c.date===d.toISOString().slice(0,10))){ streak++; d.setDate(d.getDate()-1); }
+  // TS 三周
+  const tsWeek=tsOf(wk), tsLast=tsOf(weekChecks(-1)), tsPrev2=tsOf(weekChecks(-2));
+  const planMinutes=DB.plan?DB.plan.items.reduce((s,i)=>s+i.minutes,0):0;
+  // 建议
+  const tips=[];
+  if(completion>=85) tips.push("提升建议｜本周完成率较高（"+completion+"%），下周可适度提升强度或时长，实现渐进超负荷");
+  else if(completion<60 && wk.length) tips.push("减量建议｜完成率偏低（"+completion+"%），建议把训练拆成 20 分钟短时段，降低单次门槛");
+  if(weeklyMinutes<150 && dow>=5) tips.push("本周训练量 "+weeklyMinutes+" 分钟，低于世界卫生组织（WHO）每周 150 分钟建议，周末可补一次有氧");
+  if(restDays<2) tips.push("本周休息日不足 2 天，注意安排恢复，避免过度训练");
+  if(tsLast>0 && tsWeek>tsLast*1.3) tips.push("预警｜本周负荷 "+tsWeek+" 较上周 "+tsLast+" 涨幅超 30%，有过度训练风险，建议增加休息日");
+  if(tsPrev2>0 && tsLast>0 && tsWeek>0){
+    const mx=Math.max(tsPrev2,tsLast,tsWeek), mn=Math.min(tsPrev2,tsLast,tsWeek);
+    if(mx>0 && (mx-mn)/mx<0.1) tips.push("平台期｜近三周负荷波动不足 10%，身体已适应当前刺激，可更换项目或调整强度");
+  }
+  if(!tips.length) tips.push("训练节奏良好，按计划执行并及时打卡，持续复盘会更有效");
+  return { completion, weeklyMinutes, trainingDays, calories, streak, strengthPct,
+    tsWeek, tsLast, tsPrev2, perDay, planMinutes, restDays, tips };
+}
+
+/* ---------- 自适应纠偏 ---------- */
+function adjust(ex, feeling){
+  if(!DB.plan) return {};
+  const item=DB.plan.items.find(i=>i.exercise===ex);
+  if(!item) return {};
+  const rec=DB.checks.filter(c=>c.exercise===ex).sort((a,b)=>b.date.localeCompare(a.date));
+  const streakFeel=f=>{ let n=0; for(const c of rec){ if(c.feeling===f) n++; else break; } return n; };
+  let changeType=null, reason="", detail="";
+  if(feeling==="pain" && ["慢跑","跳绳","杠铃训练"].includes(ex)){
+    const alt={ "慢跑":"椭圆机","跳绳":"快走","杠铃训练":"自重训练" }[ex];
+    detail=CN[item.day-1]+"："+ex+" → "+alt+"（高冲击转低冲击）";
+    item.exercise=alt; changeType="INJURY_GUARD"; reason="标记关节不适，自动替换为低冲击动作";
+  } else if(streakFeel("good")>=2){
+    const old=item.minutes;
+    if(old<60){ item.minutes=Math.min(60,Math.round(old*1.1)); }
+    else { item.rpe=clamp(item.rpe+1,1,10); }
+    detail=CN[item.day-1]+"："+ex+" "+old+" 分钟 → "+item.minutes+" 分钟";
+    if(old>=60) detail=CN[item.day-1]+"："+ex+" 强度上调至 "+item.rpe+" 级";
+    changeType="PROGRESSIVE_OVERLOAD"; reason="连续两次轻松完成，自动渐进超负荷";
+  } else if(streakFeel("tired")>=2){
+    const old=item.minutes; item.minutes=Math.max(15,Math.round(old*0.8));
+    detail=CN[item.day-1]+"："+ex+" "+old+" 分钟 → "+item.minutes+" 分钟";
+    changeType="DELOAD"; reason="连续两次未完成，自动降低训练容量";
+  }
+  if(!changeType) return {};
+  DB.plan.version++;
+  const v=validate(DB.plan.items, DB.profile.goal); DB.plan.items=v.items; DB.plan.layers=v.layers;
+  DB.versions.unshift({ version:DB.plan.version, changeType, reason, detail, createdAt:nowStr() });
+  return { adjusted:true, changeType, adjustReason:reason, adjustDetail:detail };
+}
+
+/* ---------- 本地 API 路由 ---------- */
+async function localApi(path, body){
+  body=body||{};
+  switch(path){
+    case "/api/state": {
+      const p=DB.profile, b=bmi(p);
+      return { profile:{...p, bmr:bmr(p), bmi:b, bmiLevel:bmiLevel(b)},
+        plan:DB.plan, checks:DB.checks.slice().sort((a,b)=>b.date.localeCompare(a.date)),
+        stats:computeStats(), versions:DB.versions };
+    }
+    case "/api/profile": {
+      if(!body.name) return {ok:false,msg:"请填写称呼"};
+      DB.profile={ name:body.name, gender:body.gender, age:+body.age||22, height:+body.height||175,
+        weight:+body.weight||68, goal:body.goal, preference:body.preference||"", days:+body.days||4 };
+      saveDB(); return {ok:true};
+    }
+    case "/api/generate": {
+      const p=DB.profile;
+      const a=makePlan(p,false), b=makePlan(p,true);
+      DB.cand={a,b}; saveDB();
+      return { ok:true, a, ma:metrics(a.items), b, mb:metrics(b.items) };
+    }
+    case "/api/adopt": {
+      if(!DB.cand) return {ok:false,msg:"请先生成候选方案"};
+      DB.plan=DB.cand[body.variant||"a"]; DB.cand=null; saveDB(); return {ok:true};
+    }
+    case "/api/plan/discard": DB.plan=null; DB.cand=null; saveDB(); return {ok:true};
+    case "/api/activate": if(DB.plan){ DB.plan.status="active"; saveDB(); } return {ok:true};
+    case "/api/plan/update": {
+      if(!DB.plan) return {ok:false,msg:"请先生成计划"};
+      if(!EX[body.exercise]) return {ok:false,msg:"项目不在库中"};
+      const day=+body.day;
+      DB.plan.items=DB.plan.items.filter(i=>i.day!==day);
+      DB.plan.items.push({day, exercise:body.exercise, minutes:clamp(+body.minutes||30,5,300), rpe:clamp(+body.rpe||6,1,10)});
+      DB.plan.status="draft";
+      const v=validate(DB.plan.items, DB.profile.goal); DB.plan.items=v.items; DB.plan.layers=v.layers;
+      saveDB(); return {ok:true};
+    }
+    case "/api/plan/remove": {
+      if(!DB.plan) return {ok:false,msg:"请先成生计划"};
+      DB.plan.items=DB.plan.items.filter(i=>i.day!==+body.day); DB.plan.status="draft";
+      const v=validate(DB.plan.items, DB.profile.goal); DB.plan.items=v.items; DB.plan.layers=v.layers;
+      saveDB(); return {ok:true};
+    }
+    case "/api/checkin": {
+      const ex=body.exercise;
+      if(!EX[ex]) return {ok:false,msg:"项目不在库中"};
+      const p=DB.profile, met=EX[ex][1];
+      const min=clamp(+body.minutes||30,1,300), rpe=clamp(+body.rpe||6,1,10);
+      const feeling=body.feeling||"ok", date=body.date||todayStr();
+      const calories=Math.round(met*p.weight*min/60);
+      const ts=Math.round(min*rpe*met/10*10)/10;
+      let planned=0;
+      if(DB.plan){ const it=DB.plan.items.find(i=>i.day===dayOfWeek(date)&&i.exercise===ex); if(it) planned=it.minutes; }
+      const done=planned? min>=planned*0.8 : true;
+      DB.checks=DB.checks.filter(c=>!(c.date===date&&c.exercise===ex));
+      DB.checks.push({date,exercise:ex,minutes:min,rpe,planned,done,calories,ts,feeling});
+      const adj=adjust(ex,feeling);
+      saveDB();
+      return { ok:true, calories, ts, ...adj };
+    }
+    case "/api/demo": {
+      DB.checks=[];
+      const base=new Date(); base.setDate(base.getDate()-6);
+      for(let i=0;i<7;i++){
+        const d=new Date(base); d.setDate(d.getDate()+i);
+        const ds=d.toISOString().slice(0,10), dow=d.getDay()||7;
+        let exs=[];
+        if(DB.plan){ exs=DB.plan.items.filter(it=>it.day===dow).map(it=>({ex:it.exercise,plan:it.minutes})); }
+        if(!exs.length && i%2===0) exs=[{ex:"快走",plan:30}];
+        exs.forEach(({ex,plan})=>{
+          const met=EX[ex][1], min=Math.round(plan*(0.85+Math.random()*0.3)), rpe=5+Math.floor(Math.random()*3);
+          const feel=Math.random()<0.5?"good":"ok";
+          DB.checks.push({ date:ds, exercise:ex, minutes:min, rpe, planned:plan, done:min>=plan*0.8,
+            calories:Math.round(met*DB.profile.weight*min/60), ts:Math.round(min*rpe*met/10*10)/10, feeling:feel });
+        });
+      }
+      saveDB(); return {ok:true};
+    }
+    default: return {ok:false,msg:"未知接口"};
+  }
+}
+async function api(path, body){ return localApi(path, body); }
+
+/* ==================== UI（与完整版一致） ==================== */
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.className="show";
+  clearTimeout(window.__tt); window.__tt=setTimeout(()=>{ t.className=""; },2400); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function openGuide(){ GUIDE_I=0; renderGuide(); document.getElementById("guide").classList.remove("hide"); }
+function closeGuide(){ document.getElementById("guide").classList.add("hide"); localStorage.setItem("fitplan_guide_v1","done"); }
+function renderGuide(){ const g=GUIDE[GUIDE_I];
+  document.getElementById("gTitle").textContent=g.t; document.getElementById("gText").textContent=g.d;
+  document.getElementById("gDots").innerHTML=GUIDE.map((_,i)=>`<i class="${i===GUIDE_I?'on':''}"></i>`).join("");
+  document.getElementById("gPrev").style.visibility=GUIDE_I===0?"hidden":"visible";
+  document.getElementById("gNext").textContent=GUIDE_I===GUIDE.length-1?"开始使用":"下一步"; }
+function guidePrev(){ if(GUIDE_I>0){ GUIDE_I--; renderGuide(); } }
+function guideNext(){ if(GUIDE_I<GUIDE.length-1){ GUIDE_I++; renderGuide(); } else closeGuide(); }
+
+async function refresh(){
+  S=await api("/api/state");
+  const p=S.profile;
+  document.getElementById("headMeta").innerHTML=
+    `<span class="chip">${esc(p.name||"未填写称呼")}</span><span class="chip">目标 ${esc(p.goal)}</span>`+
+    `<span class="chip">基础代谢（BMR）${p.bmr} 千卡/天</span><span class="chip">体重指数（BMI）${p.bmi}（${p.bmiLevel}）</span>`+
+    (S.stats.streak>0?`<span class="chip streak">连续打卡 ${S.stats.streak} 天</span>`:"");
+  document.getElementById("p-name").value=p.name; document.getElementById("p-gender").value=p.gender;
+  document.getElementById("p-age").value=p.age; document.getElementById("p-height").value=p.height;
+  document.getElementById("p-weight").value=p.weight; document.getElementById("p-goal").value=p.goal;
+  document.getElementById("p-pref").value=p.preference; document.getElementById("p-days").value=p.days;
+  renderSteps(); renderPlan(); renderChecks(); renderStats(); renderVersions();
+}
+function renderSteps(){
+  const p=S.profile, st=S.stats;
+  const done=[!!p.name,!!S.plan,S.plan&&S.plan.status==="active",st.trainingDays>0,st.weeklyMinutes>0];
+  const cur=done.findIndex(x=>!x); const names=["建档","生成方案","调整与激活","今日打卡","查看复盘"];
+  document.getElementById("steps").innerHTML=names.map((n,i)=>
+    `<div class="st ${done[i]?'done':''} ${i===(cur<0?4:cur)?'cur':''}" onclick="goTab('${["profile","plan","plan","checkin","stats"][i]}')"><i>${done[i]?"✓":i+1}</i><span>${n}</span></div>`).join("");
+}
+async function saveProfile(){
+  const body={ name:document.getElementById("p-name").value.trim(), gender:document.getElementById("p-gender").value,
+    age:document.getElementById("p-age").value, height:document.getElementById("p-height").value,
+    weight:document.getElementById("p-weight").value, goal:document.getElementById("p-goal").value,
+    preference:document.getElementById("p-pref").value.trim(), days:document.getElementById("p-days").value };
+  if(!body.name){ toast("请先填写称呼"); return; }
+  const r=await api("/api/profile",body);
+  if(r.ok){ toast("档案已保存，基础代谢和体重指数已更新"); await refresh(); } else toast(r.msg||"保存失败");
+}
+async function generate(){ const r=await api("/api/generate",{}); if(!r.ok){ toast(r.msg||"生成失败"); return; } CAND=r; renderPlan(); toast("已生成两套候选方案，请对比后采用"); }
+async function adopt(variant){ const r=await api("/api/adopt",{variant}); if(!r.ok){ toast(r.msg||"操作失败"); return; } CAND=null; toast("已采用方案 "+variant.toUpperCase()+"，可继续修改"); await refresh(); }
+async function discardPlan(){ if(!confirm("放弃当前草稿？激活过的计划也会被清除，但打卡记录保留。")) return; await api("/api/plan/discard",{}); toast("已放弃草稿"); await refresh(); }
+async function activate(){ const r=await api("/api/activate",{}); toast(r.ok?"计划已激活":(r.msg||"操作失败")); await refresh(); }
+function weekStrip(items){ let h=""; for(let d=1;d<=7;d++){ const it=items.find(x=>x.day===d);
+  const cls=it?(catOf(it.exercise)==="力量"?"strength":catOf(it.exercise)==="柔韧"?"flex":"aerobic"):"rest";
+  h+=`<span class="${cls}" title="${it?esc(it.exercise):'休息'}">${CN[d-1].slice(1)}</span>`; } return `<div class="week">${h}</div>`; }
+function candiCard(v,p,m){
+  const label=v==="a"?"方案 A · 标准版":"方案 B · 轻量版";
+  const desc=v==="a"?"按你的目标推荐":"每次更短，强度降低 1 级";
+  return `<div class="candi ${v}"><h3>${label}<span class="pill ${m.restDays>=2?'ok':'bad'}">休息 ${m.restDays} 天</span></h3>
+    <div class="muted" style="font-size:12px">${desc} · 第 ${p.version} 版</div>${weekStrip(p.items)}
+    <div class="metric"><span>每周共练</span><b>${m.minutes} 分钟</b></div>
+    <div class="metric"><span>力量训练占比</span><b>${m.strengthPct}%</b></div>
+    <div class="metric"><span>平均强度感受</span><b>${m.avgRpe} 级 · 约${rpeShort(m.avgRpe)}</b></div>
+    <div class="metric" style="border:0"><span>每周训练天数</span><b>${m.days} 天</b></div>
+    <button class="btn ${v==='a'?'':'soft'}" style="width:100%;margin-top:12px" onclick="adopt('${v}')">采用方案 ${v.toUpperCase()}</button></div>`; }
+function renderPlan(){
+  const body=document.getElementById("planBody"), actions=document.getElementById("planActions");
+  const lc=document.getElementById("layerCard"), nc=document.getElementById("noteCard");
+  if(CAND){ actions.innerHTML=`<button class="btn ghost" onclick="CAND=null;renderPlan()">收起对比</button>`;
+    document.getElementById("planSub").textContent="标准版按目标推荐，轻量版更短更轻松；点击「采用」后保存";
+    body.innerHTML=`<div class="compare">${candiCard("a",CAND.a,CAND.ma)}${candiCard("b",CAND.b,CAND.mb)}</div>`;
+    lc.classList.add("hide"); nc.classList.add("hide"); return; }
+  const pl=S.plan;
+  if(!pl){ document.getElementById("planSub").textContent="先保存档案，再生成适合你的训练安排";
+    actions.innerHTML=`<button class="btn" onclick="generate()">生成候选方案</button>`;
+    body.innerHTML=`<div class="muted">点击右上角“生成候选方案”，系统会根据你的档案给出标准版和轻量版。比较每周训练时间、平均强度和休息天数后再点击“采用”；采用后仍能修改。</div>`;
+    lc.classList.add("hide"); nc.classList.add("hide"); return; }
+  document.getElementById("planSub").textContent="强度数字越大越费力；草稿可修改，激活后用于打卡和统计";
+  actions.innerHTML=`<button class="btn ghost" onclick="generate()">重新生成</button>`+
+    `<button class="btn ghost danger" onclick="discardPlan()">放弃草稿</button>`+
+    `<button class="btn" id="btnActivate" onclick="activate()" ${pl.status==="active"?"disabled":""}>${pl.status==="active"?"已激活":"激活计划"}</button>`;
+  const badge=pl.status==="active"?'<span class="pill ok">生效中</span>':'<span class="pill warn">草稿</span>';
+  let rows="";
+  for(let d=1;d<=7;d++){ const it=pl.items.find(x=>x.day===d);
+    if(it){ const w=Math.min(100,it.rpe*10);
+      rows+=`<tr><td>${CN[d-1]}</td><td>${esc(it.exercise)}</td><td>${it.minutes} 分钟</td><td>${it.rpe} 级 · ${rpeShort(it.rpe)}</td>
+        <td><div class="bar" title="主观强度 ${it.rpe} 级：${rpeShort(it.rpe)}"><i style="width:${w}%"></i></div></td>
+        <td><button class="btn ghost sm" onclick="openEdit(${d})">编辑</button> <button class="btn danger sm" onclick="removeItem(${d})">删除</button></td></tr>`;
+    } else rows+=`<tr><td>${CN[d-1]}</td><td class="muted">休息 · 主动恢复</td><td>-</td><td>-</td><td></td>
+        <td><button class="btn soft sm" onclick="openEdit(${d},true)">添加</button></td></tr>`; }
+  body.innerHTML=`<div class="row" style="margin-bottom:10px"><b>${esc(pl.name)}</b>${badge}
+      <span class="muted">第 ${pl.version} 版 · ${esc(pl.source)} · 生成于 ${pl.created}</span></div>
+    <div class="table-wrap"><table><thead><tr><th>星期</th><th>项目</th><th>时长</th><th>强度感受（RPE）</th><th>费力程度</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  lc.classList.remove("hide");
+  document.getElementById("layers").innerHTML=pl.layers.map(l=>`<div class="note"><span class="pill ${l.pass?'ok':'bad'}">${l.pass?'通过':'拦截'}</span> <b>${esc(l.name)}</b>：${esc(l.msg)}</div>`).join("");
+  nc.classList.remove("hide");
+  document.getElementById("notes").innerHTML=pl.notes.map(n=>{ const i=n.indexOf("｜");
+    const label=i>0?n.slice(0,i):"说明", text=i>0?n.slice(i+1):n; return `<div class="note"><b>${esc(label)}</b>　${esc(text)}</div>`; }).join("");
+}
+function openEdit(day,isAdd){ if(!S.plan){ toast("请先生成或采用一套方案"); return; } EDIT_DAY=day;
+  const it=S.plan.items.find(x=>x.day===day);
+  document.getElementById("eTitle").textContent=it?"编辑 "+CN[day-1]+" 的训练":"添加 "+CN[day-1]+" 的训练";
+  const sel=document.getElementById("e-ex"); sel.innerHTML=Object.keys(EX).map(n=>`<option>${n}</option>`).join("");
+  document.getElementById("e-day").value=String(day); document.getElementById("e-day").disabled=true;
+  if(it){ sel.value=it.exercise; document.getElementById("e-min").value=it.minutes; document.getElementById("e-rpe").value=it.rpe; }
+  else { sel.value="快走"; document.getElementById("e-min").value=30; document.getElementById("e-rpe").value=5; }
+  document.getElementById("edit").classList.remove("hide"); }
+function closeEdit(){ document.getElementById("edit").classList.add("hide"); }
+async function saveItem(){
+  const body={ day:Number(document.getElementById("e-day").value), exercise:document.getElementById("e-ex").value,
+    minutes:document.getElementById("e-min").value, rpe:document.getElementById("e-rpe").value };
+  const r=await api("/api/plan/update",body); if(!r.ok){ toast(r.msg||"保存失败"); return; }
+  closeEdit(); toast("已更新 "+CN[body.day-1]+" 的安排"); await refresh(); }
+async function removeItem(day){ if(!confirm("删除 "+CN[day-1]+" 的训练？")) return;
+  const r=await api("/api/plan/remove",{day}); if(!r.ok){ toast(r.msg||"删除失败"); return; }
+  toast("已删除 "+CN[day-1]); await refresh(); }
+function renderChecks(){
+  const dateEl=document.getElementById("c-date");
+  if(dateEl&&!dateEl.value) dateEl.value=todayStr();
+  const sel=document.getElementById("c-ex"), cur=sel.value, today=new Date().getDay()||7;
+  let planned=[]; if(S.plan) planned=S.plan.items.filter(i=>i.day===today).map(i=>i.exercise);
+  sel.innerHTML=(planned.length?planned:Object.keys(EX)).map(n=>`<option>${esc(n)}</option>`).join("");
+  if(cur) sel.value=cur;
+  document.getElementById("todayPlan").innerHTML=planned.length
+    ?`今天的计划：<b>${planned.map(esc).join("、")}</b>（已自动填入项目）`
+    :"今天没有计划条目，可从全部项目中选择，或先到「训练计划」调整。";
+  const cs=S.checks;
+  if(!cs.length){ document.getElementById("checkTable").innerHTML='<span class="muted">暂无记录</span>'; return; }
+  document.getElementById("checkTable").innerHTML=
+    `<table><thead><tr><th>日期</th><th>项目</th><th>实际</th><th>强度感受</th><th>热量</th><th>训练负荷</th><th>状态</th></tr></thead><tbody>`+
+    cs.map(c=>`<tr><td>${c.date}</td><td>${esc(c.exercise)}</td><td>${c.minutes} 分钟${c.planned?`（计划 ${c.planned}）`:""}</td>
+      <td>${c.rpe} 级 · ${rpeShort(c.rpe)}</td><td>${c.calories} 千卡</td><td>${c.ts||0}</td><td><span class="pill ${c.done?'ok':'bad'}">${c.done?'完成':'未完成'}</span></td></tr>`).join("")+"</tbody></table>";
+}
+function renderVersions(){
+  const vs=S.versions||[];
+  const TYPE={ PROGRESSIVE_OVERLOAD:{t:"加量",cls:"ok"}, DELOAD:{t:"减量",cls:"warn"}, INJURY_GUARD:{t:"换动作",cls:"bad"} };
+  document.getElementById("versions").innerHTML=vs.length?vs.map(v=>{
+    const tp=TYPE[v.changeType]||{t:"调整",cls:"ok"}; const seq=Math.max(1,v.version-1);
+    return `<div class="note"><span class="pill ${tp.cls}">${tp.t}</span> <b>第 ${seq} 次调整｜${esc(v.reason)}</b><br>${esc(v.detail)} <span class="muted">· ${esc(v.createdAt)}</span></div>`;
+  }).join(""):'<span class="muted">暂无调整记录。连续两次轻松完成 / 未完成，或标记关节不适后，计划会自动调整并在这里留下记录。</span>';
+}
+async function doCheckin(){
+  const body={ exercise:document.getElementById("c-ex").value, minutes:document.getElementById("c-min").value,
+    rpe:document.getElementById("c-rpe").value, feeling:document.getElementById("c-feeling").value, date:document.getElementById("c-date").value };
+  const r=await api("/api/checkin",body); if(!r.ok){ toast(r.msg||"打卡失败"); return; }
+  toast(`已记录，消耗约 ${r.calories} 千卡，训练负荷（TS）${r.ts}`);
+  if(r.adjusted) setTimeout(()=>toast("计划已自适应调整："+r.adjustReason+"（"+r.adjustDetail+"）"),2600);
+  await refresh();
+}
+async function demo(){ await api("/api/demo",{}); toast("已生成近 7 天演示数据"); await refresh(); }
+function renderStats(){
+  const st=S.stats;
+  document.getElementById("kpi").innerHTML=`
+    <div><label>本周完成率</label><b>${st.completion}%</b></div>
+    <div><label>本周训练</label><b>${st.weeklyMinutes}<small> 分钟</small></b></div>
+    <div><label>训练天数</label><b>${st.trainingDays}<small> 天</small></b></div>
+    <div><label>消耗热量</label><b>${st.calories}<small> 千卡</small></b></div>
+    <div><label>连续打卡</label><b>${st.streak}<small> 天</small></b></div>
+    <div><label>力量占比</label><b>${st.strengthPct}%</b></div>
+    <div><label>本周训练负荷（TS）</label><b>${st.tsWeek}</b></div>`;
+  document.getElementById("loadTrend").innerHTML=
+    `<div class="muted">TS（训练负荷）= 时长 × RPE（主观强度） × MET（动作耗能系数） ÷ 10；用于比较训练压力，不是消耗热量</div>
+     <div style="font-size:20px;margin:10px 0">近三周负荷： <b>${st.tsPrev2} → ${st.tsLast} → ${st.tsWeek}</b> <span class="muted">（上上周 → 上周 → 本周）</span></div>
+     <div class="muted">周涨幅超 30% 触发过度训练预警；近三周波动不足 10% 判定平台期，详见下方建议。</div>`;
+  const max=Math.max(30,...st.perDay);
+  document.getElementById("days").innerHTML=st.perDay.map((v,i)=>`<div><span>${v}</span><i style="height:${Math.round(v/max*110)}px"></i><span>${CN[i].slice(1)}</span></div>`).join("");
+  const planMin=st.planMinutes||0, pct=planMin?Math.min(100,Math.round(st.weeklyMinutes*100/planMin)):0;
+  document.getElementById("planProgress").innerHTML=`<div class="muted">计划周量 ${planMin} 分钟，已完成 ${st.weeklyMinutes} 分钟（${pct}%），本周休息 ${st.restDays} 天</div><div class="bar" style="height:12px;margin-top:8px"><i style="width:${pct}%"></i></div>`;
+  document.getElementById("tips").innerHTML=st.tips.map(t=>`<div class="tip">${esc(t)}</div>`).join("");
+}
+function goTab(key){
+  document.querySelectorAll("nav button[data-tab]").forEach(x=>x.classList.toggle("on",x.dataset.tab===key));
+  ["profile","plan","checkin","stats"].forEach(k=>{ document.getElementById("tab-"+k).className=(k===key)?"":"hide"; });
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll("nav button[data-tab]").forEach(b=>{ b.onclick=()=>goTab(b.dataset.tab); });
+document.getElementById("btnGuide").onclick=openGuide;
+document.getElementById("gPrev").onclick=guidePrev;
+document.getElementById("gNext").onclick=guideNext;
+
+loadDB();
+refresh().then(()=>{ if(!localStorage.getItem("fitplan_guide_v1")) openGuide(); })
+  .catch(e=>toast("初始化失败："+e.message));
+</script>
+</body>
+</html>
