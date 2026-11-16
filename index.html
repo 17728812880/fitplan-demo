@@ -246,7 +246,7 @@ const GUIDE = [
   {t:"第 1 步 · 建档", d:"先填称呼、性别、年龄、身高、体重，选训练目标与每周可练天数。保存后顶部会实时显示基础代谢（BMR）和体重指数（BMI）。"},
   {t:"第 2 步 · 对比两套方案", d:"进入「训练计划」点生成，会同时给出 A 标准版 和 B 轻量版，对比周训练量、力量占比、休息天数，选更合适的点「采用」。"},
   {t:"第 3 步 · 自由调整（不会被强制激活）", d:"草稿里每一行都能改项目、时长和强度感受。强度采用主观运动强度（RPE），1 级最轻松、10 级最极限；训练计划页可展开完整对照。"},
-  {t:"第 4 步 · 今日打卡", d:"今天有计划项目会置顶显示，记录实际时长与强度感受；同项目重复提交自动覆盖，页面会给出热量估算和连续打卡天数。"},
+  {t:"第 4 步 · 今日打卡", d:"可从全部项目中选择今天实际完成的运动，训练计划仅供参考；同项目重复提交自动覆盖，页面会给出热量估算和连续打卡天数。"},
   {t:"第 5 步 · 复盘", d:"「数据统计」里看完成率、周量、每日柱状图与可解释建议（如完成率低于 60% 会给出降低训练量建议）。"}
 ];
 
@@ -620,11 +620,11 @@ function renderChecks(){
   if(dateEl&&!dateEl.value) dateEl.value=todayStr();
   const sel=document.getElementById("c-ex"), cur=sel.value, today=new Date().getDay()||7;
   let planned=[]; if(S.plan) planned=S.plan.items.filter(i=>i.day===today).map(i=>i.exercise);
-  sel.innerHTML=(planned.length?planned:Object.keys(EX)).map(n=>`<option>${esc(n)}</option>`).join("");
-  if(cur) sel.value=cur;
+  sel.innerHTML='<option value="">请选择实际完成的运动项目</option>'+Object.keys(EX).map(n=>`<option>${esc(n)}</option>`).join("");
+  if(cur&&EX[cur]) sel.value=cur;
   document.getElementById("todayPlan").innerHTML=planned.length
-    ?`今天的计划：<b>${planned.map(esc).join("、")}</b>（已自动填入项目）`
-    :"今天没有计划条目，可从全部项目中选择，或先到「训练计划」调整。";
+    ?`今天的计划：<b>${planned.map(esc).join("、")}</b>（仅供参考，请按实际情况选择打卡项目）`
+    :"请选择今天实际完成的运动项目，或先到「训练计划」调整。";
   const cs=S.checks;
   if(!cs.length){ document.getElementById("checkTable").innerHTML='<span class="muted">暂无记录</span>'; return; }
   document.getElementById("checkTable").innerHTML=
@@ -641,7 +641,9 @@ function renderVersions(){
   }).join(""):'<span class="muted">暂无调整记录。连续两次轻松完成 / 未完成，或标记关节不适后，计划会自动调整并在这里留下记录。</span>';
 }
 async function doCheckin(){
-  const body={ exercise:document.getElementById("c-ex").value, minutes:document.getElementById("c-min").value,
+  const exercise=document.getElementById("c-ex").value;
+  if(!exercise){ toast("请选择实际完成的运动项目"); return; }
+  const body={ exercise, minutes:document.getElementById("c-min").value,
     rpe:document.getElementById("c-rpe").value, feeling:document.getElementById("c-feeling").value, date:document.getElementById("c-date").value };
   const r=await api("/api/checkin",body); if(!r.ok){ toast(r.msg||"打卡失败"); return; }
   toast(`已记录，消耗约 ${r.calories} 千卡，训练负荷（TS）${r.ts}`);
